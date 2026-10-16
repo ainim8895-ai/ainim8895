@@ -1,5 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using TMPro;
+using UnityEngine.SceneManagement;
  
 public class PlayerController : MonoBehaviour
 {
@@ -10,8 +12,12 @@ public class PlayerController : MonoBehaviour
   private Rigidbody2D rb;
   public Vector3 startPosition;
   private Vector2 moveInput;
- public Transform visual;
- private bool isGrounded = false;
+  public Transform visual;
+  private bool isGrounded = false;
+ public GameObject gameOverPanel;
+
+public TMP_Text livesText;
+public string nextSceneName = "Stage2";
 
   void Start()
   
@@ -20,7 +26,7 @@ public class PlayerController : MonoBehaviour
   {
     rb = GetComponent<Rigidbody2D>();
     transform.position = startPosition;
-    Debug.Log(playerName + " 시작. 체력 " + hp);
+    livesText.text = "LIFE " + lives;
     Debug.Log("피격 후 체력 " + (hp - 30));
     Debug.Log("달리기 속도 " + moveSpeed * 2);
     Debug.Log("10 / 4 = " + 10 / 4);
@@ -67,6 +73,36 @@ void OnCollisionExit2D(Collision2D collision)
     }
   }
 
+ void LoseLife()
+ {
+  lives -= 1;
+  transform.position = startPosition;
+  rb.linearVelocity = Vector2.zero;
+  livesText.text = "LIFE " + lives;
+  if (lives <= 0)
+  {
+   isGameOver = true;
+   gameOverPanel.SetActive(true);
+  }
+ }
+
+
+void OnTriggerEnter2D(Collider2D other)
+{
+ if (other.CompareTag("Goal"))
+ {
+  SceneManager.LoadScene(nextSceneName);
+ }
+  else if (other.CompareTag("Trap"))
+  {
+   LoseLife();
+  }
+
+}
+
+
+
+
   public Vector2 airScale = new Vector2(0.8f, 1.2f);
   private float facing = 1f;
 
@@ -91,23 +127,8 @@ if (moveInput.x > 0){ facing = 1f; }
     }
     if (transform.position.y < fallLimit)
     {
-
-
-  lives -= 1;
-      transform.position = startPosition;
-      rb.linearVelocity = Vector2.zero;
-      Debug.Log("낙사. 남은 목숨 " + lives);
-      if (lives <= 0)
-      {
-        isGameOver = true;
-        Debug.Log("게임 오버");
-      }
-
-
-      transform.position = startPosition;
-      rb.linearVelocity = Vector2.zero;
-      Debug.Log("낙사");
-    }
+     LoseLife();
+}
 if (isGrounded)
     {
       visual.localScale = new Vector3(facing, 1f, 1f);
